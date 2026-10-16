@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="ja"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>AION2 炎の神殿(征服) ドロップシミュレーター</title>
+<style>
+:root{--bg:#fafaf7;--fg:#1d1d1b;--mut:#6b6b66;--card:#fff;--bd:#e3e2dc;--ac:#c2410c;--u:#b45309;--c:#7c3aed;--g:#2563eb;--m:#6b6b66;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#161618;--fg:#eeeeea;--mut:#9a9a94;--card:#202023;--bd:#333338;--ac:#fb923c;--u:#fbbf24;--c:#a78bfa;--g:#60a5fa;--m:#9a9a94;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#161618;--fg:#eeeeea;--mut:#9a9a94;--card:#202023;--bd:#333338;--ac:#fb923c;--u:#fbbf24;--c:#a78bfa;--g:#60a5fa;--m:#9a9a94;color-scheme:dark}
+*{box-sizing:border-box}html,body{margin:0}
+body{background:var(--bg);color:var(--fg);font:15px/1.5 -apple-system,"Hiragino Sans","Noto Sans JP",system-ui,sans-serif;padding:16px;max-width:640px;margin:0 auto}
+h1{font-size:18px;margin:4px 0 2px}.sub{color:var(--mut);font-size:12px;margin-bottom:12px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:12px;margin-bottom:12px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+button,select{font:inherit;color:var(--fg);background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:9px 12px}
+button.p{background:var(--ac);color:#fff;border-color:var(--ac);font-weight:600}
+button.on{border-color:var(--ac);color:var(--ac);font-weight:600}
+button:active{opacity:.7}
+label{display:flex;gap:6px;align-items:center;font-size:13px}
+.big{font-size:22px;font-weight:700}.mut{color:var(--mut);font-size:12px}
+.stat{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;text-align:center}
+.stat div span{display:block;color:var(--mut);font-size:11px}
+.item{display:flex;justify-content:space-between;gap:8px;padding:3px 0;border-bottom:1px dashed var(--bd);font-size:13px}
+.item b{font-variant-numeric:tabular-nums}
+.t-u{color:var(--u);font-weight:600}.t-c{color:var(--c)}.t-g{color:var(--g)}.t-m{color:var(--m)}
+h2{font-size:13px;margin:10px 0 4px;color:var(--mut)}
+.log{max-height:160px;overflow-y:auto;font-size:13px}
+select{max-width:100%;flex:1;min-width:0}
+</style></head><body>
+<h1>🔥 炎の神殿(征服) ドロップシミュレーター</h1>
+<div class="sub">1周 = クロメデの欲望 + 中ボス2体(赤炎イグヌス / 黒煙ムルト)</div>
+
+<div class="card">
+  <div class="row"><button id="mN">征服</button><button id="mH">征服(ハード)</button></div>
+  <div class="row" style="margin-top:8px">
+    <label><input type="checkbox" id="kt" checked>韓国/台湾先行アイテムを除外</label>
+    <label><input type="checkbox" id="mid" checked>中ボスを含める</label>
+    <label>1周で開ける箱 <select id="bx" style="flex:none"><option value="1">1個(40)</option><option value="2" selected>2個(80)</option></select></label>
+  </div>
+</div>
+
+<div class="card">
+  <div class="row"><button class="p" data-n="1">1周</button><button class="p" data-n="10">10周</button><button class="p" data-n="100">100周</button><button class="p" data-n="1000">1000周</button><button id="rs">リセット</button></div>
+  <div class="stat" style="margin-top:12px">
+    <div><div class="big" id="sRuns">0</div><span>周回数</span></div>
+    <div><div class="big t-u" id="sUni">0</div><span>クロメデ装備 累計</span></div>
+    <div><div class="big" id="sExp">0</div><span>同 期待値/周</span></div>
+    <div><div class="big" id="sSta">0</div><span>消費スタミナ 累計</span></div>
+  </div>
+</div>
+
+<div class="card">
+  <b style="font-size:14px">目標アイテム</b>
+  <div class="row" style="margin-top:6px"><select id="tg"></select><button class="p" id="go">出るまで周回</button></div>
+  <div id="tgInfo" class="mut" style="margin-top:8px"></div>
+  <div id="tgRes" style="margin-top:6px;font-weight:600"></div>
+  <div class="row" style="margin-top:10px"><input id="tn" type="number" value="1000" min="10" max="20000" style="width:90px;font:inherit;color:var(--fg);background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:9px 12px"><button class="p" id="mc">回、出るまで周回して統計</button></div>
+  <div id="mcRes" style="margin-top:8px;font-size:13px"></div>
+</div>
+
+<div class="card"><b style="font-size:14px">ドロップ集計</b><div id="cnt"></div></div>
+<div class="card"><b style="font-size:14px">ユニーク入手ログ</b><div class="log" id="log"><span class="mut">まだありません</span></div></div>
+
+<div class="mut" style="padding:0 4px 16px">
+データ: NCSOFT公式確率開示(韓国サービス、2026-09-30公開)を集計したgamewith.aiの値。グローバル版の確率表は未公開のため実際の値とは異なる可能性があります。<br>
+・クロメデの欲望は全グループ検証済み。<br>
+・中ボスは「エンレイジド・クロメデ装備」の確率(ボスの1/2)のみ確認できたため、それ以外の中ボスのドロップは含めていません。<br>
+・1周で開ける箱は最大2個、スタミナは箱1個につき40。箱1個ごとに全ドロップを独立して抽選する前提で計算しています(箱ごとの抽選仕様は未確認)。<br>
+・アイテム名は英語名からの私訳です(日本語の公式名称は確認できませんでした)。<br>
+・グループ確率100%超は「floor(確率)回確定 + 端数で追加1回」として計算。
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const WP=['Greatsword','Longsword','Dagger','Bow','Spellbook','Orb','Mace','Staff'];
+const AR=[['Breastplate',1],['Greaves',4/3],['Helm',1.6],['Pauldrons',1.6],['Gloves',2],['Boots',1.6],['Cloak',2]];
+function gear(pre,u,t,guard,neck){const a=[];WP.forEach(w=>a.push({n:pre+w,w:u*2/3,t}));a.push({n:pre+'Knuckles',w:u*2/3,t,kt:1});
+ if(guard)a.push({n:pre+'Guard',w:u*2/3,t});AR.forEach(([s,m])=>a.push({n:pre+s,w:u*m,t}));
+ if(neck)a.push({n:pre+'Necklace',w:u*1.6,t});return a}
+const ENR=[['Claymore',5.43],['Sword',5.43],['Silver Dagger',5.43],['Longbow',5.43],['Spellbook',5.43],['Jewel',5.43],['Warhammer',5.43],['Rod',5.43],['Gauntlets',5.43,1],['Necklace',13.04],['Earrings',16.3],['Ring',21.74]]
+ .map(([s,w,kt])=>({n:'Enraged Kromede '+s,w,t:'u',kt}));
+const COR=gear('Corrupted Judicator ',5.34,'c',0,1);
+const EV=[...gear('Earth ',4.48,'g',1,0),...gear('Vagabond ',1.14,'g',1,0)];
+const RAGE=['Thought of Rage','Will of Rage','Ego of Rage'].map(n=>({n,w:1,t:'m'}));
+const REF=[['Refining Stone',89.42],["Artisan's Refining Stone",8.94],["Master's Refining Stone",.8942],["Master's Supreme Refining Stone",.7452]].map(([n,w])=>({n,w,t:'m'}));
+const S={hard:true,runs:0,cnt:{},log:[]};
+const JP={'Enraged Kromede ':'激怒したクロメデの','Corrupted Judicator ':'堕落した審判者の','Earth ':'大地の','Vagabond ':'放浪者の'};
+const JS={Greatsword:'大剣',Claymore:'大剣',Longsword:'長剣',Sword:'長剣',Dagger:'短剣','Silver Dagger':'銀の短剣',Bow:'弓',Longbow:'長弓',Spellbook:'魔道書',Orb:'宝珠',Jewel:'宝珠',Mace:'鎚矛',Warhammer:'戦鎚',Staff:'杖',Rod:'杖',Knuckles:'ナックル',Gauntlets:'ナックル',Guard:'ガード',Breastplate:'胸当て',Greaves:'脚甲',Helm:'兜',Pauldrons:'肩当て',Gloves:'手袋',Boots:'靴',Cloak:'マント',Necklace:'ネックレス',Earrings:'イヤリング',Ring:'指輪'};
+const JM={'Ancient Spirit Ring':'古代の精霊の指輪','Thought of Rage':'憤怒の思念','Will of Rage':'憤怒の意志','Ego of Rage':'憤怒の自我','Refining Stone':'精製石',"Artisan's Refining Stone":'職人の精製石',"Master's Refining Stone":'名匠の精製石',"Master's Supreme Refining Stone":'名匠の至高の精製石','Amplify Stone Fragment (Heroic)':'増幅石の欠片(英雄)','Amplify Stone Fragment (Unique)':'増幅石の欠片(ユニーク)','Soul Book':'魂の書','Dragon Essence':'竜の精髄','Silentium':'サイレンティウム','Kinah':'キナ','Enhance Stone':'強化石','Kromede Wings Wing Feather':'クロメデの翼の羽根','Trace of the Masterpiece: Fire Temple':'名品の痕跡:炎の神殿','Tuning Stone Shard (Unique)':'調律石の欠片(ユニーク)'};
+function J(n){if(JM[n])return JM[n];for(const p in JP)if(n.startsWith(p))return JP[p]+(JS[n.slice(p.length)]||n.slice(p.length));return n}
+const kt=()=>$('kt').checked, mid=()=>$('mid').checked;
+function groups(fin){const h=S.hard,m=fin?1:.5;
+ const g=[{c:(h?1:.5)*m,it:[{n:'Ancient Spirit Ring',w:1,t:'u',kt:1}]},{c:(h?20:10)*m,it:ENR}];
+ if(fin)g.push({c:200,it:COR},{c:300,it:EV},{c:h?6:4.8,it:RAGE},{c:180,it:REF});
+ return g.map(x=>({c:x.c,it:x.it.filter(i=>!(kt()&&i.kt))})).filter(x=>x.it.length)}
+function ind(){const a=[['Amplify Stone Fragment (Heroic)',20,[1,5]],['Amplify Stone Fragment (Unique)',20,[1,5]],['Soul Book',180,1],['Dragon Essence',18,1],['Silentium',100,7],['Kinah',100,170000],['Enhance Stone',100,2000],['Kromede Wings Wing Feather',150,1],['Trace of the Masterpiece: Fire Temple',25,1]];
+ if(S.hard)a.push(['Tuning Stone Shard (Unique)',100,8]);return a}
+let BX=2,ST=80;const fm=n=>`${fmt(n)}周(${fmt(n*ST)}スタミナ)`;
+const bosses=()=>[true,...(mid()?[false,false]:[])];
+function add(n,q,t){const o=S.cnt[n]||(S.cnt[n]={q:0,t});o.q+=q;}
+function nDraw(c){const k=Math.floor(c/100);return k+(Math.random()<c/100-k?1:0)}
+function runOnce(){S.runs++;
+ for(let bx=0;bx<BX;bx++)for(const fin of bosses()){
+  for(const g of groups(fin)){let n=nDraw(g.c);const tot=g.it.reduce((s,i)=>s+i.w,0);
+   while(n--){let r=Math.random()*tot,pick=g.it[g.it.length-1];for(const i of g.it){if((r-=i.w)<0){pick=i;break}}
+    add(pick.n,1,pick.t);if(pick.t==='u')S.log.push(`${S.runs}周目 ${fin?'クロメデ':'中ボス'}: ${J(pick.n)}`)}}
+  if(fin)for(const [n,c,q] of ind()){let k=nDraw(c);while(k--)add(n,Array.isArray(q)?q[0]+Math.floor(Math.random()*(q[1]-q[0]+1)):q,'m')}
+ }}
+function p0(name){let p=1;for(let b=0;b<BX;b++)for(const fin of bosses())for(const g of groups(fin)){const it=g.it.find(i=>i.n===name);if(!it)continue;
+  const w=it.w/g.it.reduce((s,i)=>s+i.w,0),k=Math.floor(g.c/100),f=g.c/100-k;p*=Math.pow(1-w,k)*(1-f*w)}return p}
+function expUni(){let e=0;for(let b=0;b<BX;b++)for(const fin of bosses())for(const g of groups(fin)){const tot=g.it.reduce((s,i)=>s+i.w,0);
+  g.it.forEach(i=>{if(i.n.startsWith('Enraged')||i.n==='Ancient Spirit Ring')e+=g.c/100*i.w/tot})}return e}
+function fillTargets(){const cur=$('tg').value,seen=new Set(),o=[];
+ for(const g of groups(true).slice(0,5))g.it.forEach(i=>{if(!seen.has(i.n)){seen.add(i.n);o.push(i)}});
+ $('tg').innerHTML=o.map(i=>`<option value="${i.n}">${J(i.n)}</option>`).join('');
+ $('tg').value=seen.has(cur)?cur:(o.find(i=>i.n==='Enraged Kromede Ring')||o[0]).n}
+const fmt=n=>n.toLocaleString('ja-JP');
+function render(){
+ $('sRuns').textContent=fmt(S.runs);
+ let u=0;for(const k in S.cnt)if(k.startsWith('Enraged')||k==='Ancient Spirit Ring')u+=S.cnt[k].q;
+ $('sUni').textContent=fmt(u);$('sExp').textContent=expUni().toFixed(3);$('sSta').textContent=fmt(S.runs*ST);
+ const q=p0($('tg').value),p=1-q;
+ $('tgInfo').innerHTML=p>0?`1周あたり ${(p*100).toFixed(3)}% / 期待 約${fm(Math.round(1/p))}<br>50%到達 ${fm(Math.ceil(Math.log(.5)/Math.log(q)))}<br>90%到達 ${fm(Math.ceil(Math.log(.1)/Math.log(q)))}`:'このモードでは出現しません';
+ const T={u:'ユニーク',c:'コラプテッド・ジュディケーター',g:'アース / ヴァガボンド',m:'素材・その他'};
+ let h='';for(const t of ['u','c','g','m']){const e=Object.entries(S.cnt).filter(([,o])=>o.t===t).sort((a,b)=>b[1].q-a[1].q);
+  if(e.length)h+=`<h2>${T[t]}</h2>`+e.map(([n,o])=>`<div class="item"><span class="t-${t}">${J(n)}</span><b>×${fmt(o.q)}</b></div>`).join('')}
+ $('cnt').innerHTML=h||'<div class="mut">周回するとここに集計されます</div>';
+ $('log').innerHTML=S.log.length?S.log.slice(-60).reverse().map(l=>`<div class="item"><span class="t-u">${l}</span></div>`).join(''):'<span class="mut">まだありません</span>'}
+function reset(){S.runs=0;S.cnt={};S.log=[];$('tgRes').textContent='';fillTargets();render()}
+function setMode(h){S.hard=h;$('mH').className=h?'on':'';$('mN').className=h?'':'on';reset()}
+document.querySelectorAll('[data-n]').forEach(b=>b.onclick=()=>{for(let i=+b.dataset.n;i--;)runOnce();render()});
+$('go').onclick=()=>{const n=$('tg').value;let c=0;const before=(S.cnt[n]||{q:0}).q,start=S.runs;
+ while(c<200000){runOnce();c++;if((S.cnt[n]||{q:0}).q>before)break}
+ $('tgRes').textContent=(S.cnt[n]||{q:0}).q>before?`${J(n)} は ${fm(c)}で入手(累計 ${fmt(S.runs)}周)`:'20万周以内に出ませんでした';render()};
+$('mc').onclick=()=>{const n=$('tg').value,N=Math.min(20000,Math.max(10,Math.floor(+$('tn').value)||1000));
+ const sp=[];for(let b=0;b<BX;b++)for(const fin of bosses())for(const g of groups(fin)){const it=g.it.find(i=>i.n===n);if(it)sp.push([g.c,it.w/g.it.reduce((s,i)=>s+i.w,0)])}
+ if(!sp.length){$('mcRes').textContent='このモードでは出現しません';return}
+ const r=[];for(let t=0;t<N;t++){let c=0,ok=false;while(!ok){c++;for(const [gc,w] of sp){let k=nDraw(gc);while(k--)if(Math.random()<w)ok=true}}r.push(c)}
+ r.sort((a,b)=>a-b);const q=x=>r[Math.min(N-1,Math.floor(x*N))],mean=r.reduce((a,b)=>a+b,0)/N,p=1-p0(n);
+ $('mcRes').innerHTML=`<b>${J(n)}</b> を出るまで周回 × ${fmt(N)}回<div class="item"><span>中央値</span><b>${fm(q(.5))}</b></div><div class="item"><span>平均(期待周回数)</span><b>${fm(Math.round(mean))}</b></div><div class="item"><span>75%の人が到達</span><b>${fm(q(.75))}</b></div><div class="item"><span>90%の人が到達</span><b>${fm(q(.9))}</b></div><div class="item"><span>最悪ケース</span><b>${fm(r[N-1])}</b></div><div class="mut" style="margin-top:4px">理論値: 平均 ${fm(Math.round(1/p))} / 中央値 ${fm(Math.ceil(Math.log(.5)/Math.log(1-p)))}</div>`};
+$('rs').onclick=reset;$('mN').onclick=()=>setMode(false);$('mH').onclick=()=>setMode(true);
+$('kt').onchange=$('mid').onchange=reset;$('bx').onchange=()=>{BX=+$('bx').value;ST=40*BX;reset()};$('tg').onchange=render;
+setMode(true);
+</script></body></html>
